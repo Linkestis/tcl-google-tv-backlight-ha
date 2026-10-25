@@ -1,0 +1,19 @@
+input_boolean:
+  tcl_smart_backlight_enabled:
+    name: TCL Smart Backlight Enabled
+  tcl_backlight_manual_override:
+    name: TCL Backlight Manual Override
+
+input_number:
+  tcl_backlight_last_level:
+    name: TCL Backlight Last Level
+    min: 0
+    max: 100
+    step: 1
+    mode: slider
+
+timer:
+  tcl_backlight_manual_override_timer:
+    name: TCL Backlight Manual Override Timer
+    duration: "02:00:00"
+    restore: true

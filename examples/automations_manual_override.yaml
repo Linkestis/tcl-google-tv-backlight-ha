@@ -1,0 +1,102 @@
+automation:
+  - alias: "TCL Smart Backlight - Manual Override Timer Finished"
+    id: tcl_smart_backlight_manual_override_timer_finished
+    mode: single
+    triggers:
+      - trigger: event
+        event_type: timer.finished
+        event_data:
+          entity_id: timer.tcl_backlight_manual_override_timer
+    actions:
+      - action: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.tcl_backlight_manual_override
+      - if:
+          - condition: state
+            entity_id: media_player.tcl_tv
+            state: "on"
+        then:
+          - action: automation.trigger
+            target:
+              entity_id: automation.tcl_smart_backlight_controller
+            data:
+              skip_condition: false
+
+  - alias: "TCL Smart Backlight - Clear Manual Override on Source or TV OFF"
+    id: tcl_smart_backlight_clear_manual_override_on_source_or_tv_off
+    mode: restart
+    triggers:
+      - trigger: state
+        entity_id: media_player.tcl_tv
+        to: "off"
+        id: tv_off
+      - trigger: state
+        entity_id: input_text.capture_source
+        id: source_changed
+    conditions:
+      - condition: state
+        entity_id: input_boolean.tcl_backlight_manual_override
+        state: "on"
+    actions:
+      - action: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.tcl_backlight_manual_override
+      - action: timer.cancel
+        target:
+          entity_id: timer.tcl_backlight_manual_override_timer
+        continue_on_error: true
+      - if:
+          - condition: state
+            entity_id: media_player.tcl_tv
+            state: "on"
+        then:
+          - action: automation.trigger
+            target:
+              entity_id: automation.tcl_smart_backlight_controller
+            data:
+              skip_condition: false
+
+  - alias: "TCL Smart Backlight - Reconcile Manual Override on HA Start"
+    id: tcl_smart_backlight_reconcile_manual_override_on_ha_start
+    mode: single
+    triggers:
+      - trigger: homeassistant
+        event: start
+    actions:
+      - delay:
+          seconds: 10
+      - if:
+          - condition: state
+            entity_id: timer.tcl_backlight_manual_override_timer
+            state: "active"
+          - condition: state
+            entity_id: input_boolean.tcl_backlight_manual_override
+            state: "off"
+        then:
+          - action: input_boolean.turn_on
+            target:
+              entity_id: input_boolean.tcl_backlight_manual_override
+            continue_on_error: true
+      - if:
+          - condition: state
+            entity_id: input_boolean.tcl_backlight_manual_override
+            state: "on"
+          - condition: template
+            value_template: >-
+              {{ not is_state('timer.tcl_backlight_manual_override_timer', 'active') }}
+        then:
+          - action: input_boolean.turn_off
+            target:
+              entity_id: input_boolean.tcl_backlight_manual_override
+            continue_on_error: true
+          - if:
+              - condition: state
+                entity_id: media_player.tcl_tv
+                state: "on"
+            then:
+              - action: automation.trigger
+                target:
+                  entity_id: automation.tcl_smart_backlight_controller
+                data:
+                  skip_condition: false
+                continue_on_error: true

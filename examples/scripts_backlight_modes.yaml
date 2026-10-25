@@ -1,0 +1,49 @@
+script:
+  tcl_backlight_music:
+    alias: "TCL: Backlight Music"
+    mode: restart
+    sequence:
+      - action: script.tcl_set_backlight
+        data:
+          level: 1
+          force: true
+
+  tcl_backlight_normal_evening:
+    alias: "TCL: Backlight Normal Evening"
+    mode: restart
+    sequence:
+      - action: script.tcl_set_backlight
+        data:
+          level: 45
+          force: true
+
+  tcl_backlight_manual_hold_2h:
+    alias: "TCL: Manual Backlight Hold 2h"
+    mode: restart
+    sequence:
+      - action: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.tcl_backlight_manual_override
+      - action: timer.start
+        target:
+          entity_id: timer.tcl_backlight_manual_override_timer
+        data:
+          duration: "02:00:00"
+
+  tcl_backlight_resume_auto:
+    alias: "TCL: Resume Smart Backlight"
+    mode: restart
+    sequence:
+      - action: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.tcl_backlight_manual_override
+      - action: timer.cancel
+        target:
+          entity_id: timer.tcl_backlight_manual_override_timer
+      - delay:
+          seconds: 1
+      - action: automation.trigger
+        target:
+          entity_id: automation.tcl_smart_backlight_controller
+        data:
+          skip_condition: false

@@ -1,0 +1,39 @@
+script:
+  tcl_set_backlight:
+    alias: "TCL: Set Backlight"
+    description: "Set the tested TCL panel backlight level through ADB without saving it."
+    mode: restart
+    fields:
+      level:
+        name: Backlight level
+        description: "Requested level, clamped to 0-100."
+        example: 45
+      force:
+        name: Force send
+        description: "Send even when the cached level is close to the requested value."
+        example: false
+    sequence:
+      - variables:
+          safe_level: >-
+            {% set value = level | int(45) %}
+            {{ [0, [value, 100] | min] | max }}
+          last_level: "{{ states('input_number.tcl_backlight_last_level') | int(-999) }}"
+          force_send: "{{ force | default(false) | bool }}"
+          should_send: >-
+            {{ force_send
+               or last_level == -999
+               or (((safe_level | int) - (last_level | int)) | abs) >= 5 }}
+      - if:
+          - condition: template
+            value_template: "{{ should_send }}"
+        then:
+          - action: androidtv.adb_command
+            target:
+              entity_id: media_player.tcl_tv
+            data:
+              command: "service call tcl_tv_display 100 i32 1 i32 {{ safe_level }} i32 0"
+          - action: input_number.set_value
+            target:
+              entity_id: input_number.tcl_backlight_last_level
+            data:
+              value: "{{ safe_level }}"

@@ -1,0 +1,49 @@
+automation:
+  - alias: "TCL Smart Backlight - Controller"
+    id: tcl_smart_backlight_controller
+    mode: restart
+    triggers:
+      - trigger: state
+        entity_id: media_player.tcl_tv
+        to: "on"
+      - trigger: state
+        entity_id: input_text.capture_source
+      - trigger: numeric_state
+        entity_id: sensor.ambient_illuminance
+        below: 7
+        for:
+          minutes: 1
+      - trigger: numeric_state
+        entity_id: sensor.ambient_illuminance
+        above: 7
+        for:
+          minutes: 1
+      - trigger: state
+        entity_id: input_boolean.tcl_backlight_manual_override
+        to: "off"
+    conditions:
+      - condition: state
+        entity_id: input_boolean.tcl_smart_backlight_enabled
+        state: "on"
+      - condition: state
+        entity_id: input_boolean.tcl_backlight_manual_override
+        state: "off"
+      - condition: state
+        entity_id: media_player.tcl_tv
+        state: "on"
+    actions:
+      - choose:
+          - conditions:
+              - condition: state
+                entity_id: input_boolean.music_mode
+                state: "on"
+            sequence:
+              - action: script.tcl_set_backlight
+                data:
+                  level: 1
+                  force: true
+        default:
+          - action: script.tcl_set_backlight
+            data:
+              level: 45
+              force: false
