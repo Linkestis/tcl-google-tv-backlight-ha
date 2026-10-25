@@ -9,7 +9,7 @@ Set the panel backlight level of a tested TCL Google TV from Home Assistant thro
 | Firmware | Build date | Result |
 | --- | --- | --- |
 | V667 | 15 September 2026 | Tested |
-| V669 | 29 September 2026 | Tested |
+| V669 | 24 October 2026 | Tested |
 
 ## Requirements
 
